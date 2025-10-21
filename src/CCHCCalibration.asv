@@ -159,13 +159,13 @@ for m=[1:num_dir] %Looping for all directories
 
     %Check if we have the inital calibration
     if ~is_calib_init
-        disp(['!!!!Do not have adequate 8-point calibration data for: ', dirnames{m}, ' cannot run calibration!!!!']);
+        disp(['!!!!Do not have adequate 8-point calibration data for: ', dirnames{m}, '; cannot run calibration!!!!']);
         continue;
     end
 
     %Check if we have enough one-dot calibrations, if it is we continue to next directory
     if length(merged_files)<(1+CALIB_ONE_DOT_THRESHOLD)
-        disp(['!!!!Not enough calibration data for: ', dirnames{m}, ' cannot run calibration!!!!']);
+        disp(['!!!!Not enough calibration data for: ', dirnames{m}, '; cannot run calibration!!!!']);
         continue;
     end    
 
@@ -177,18 +177,54 @@ for m=[1:num_dir] %Looping for all directories
     if (check_calib==true)
         %#######Runs Naive Polynomial Regressor Fitting#######
         [train_cell,dist_cell,avg_corners]=getRegressionData(calib_init_data,CALIB_THRESHOLD); %Also gets the average eye corner location at the calibration
-        if length(dist_cell)==0 %Note enough data of inter-glint distance
-            disp(['!!!!Do not have enough data in initial 8-point calibration data for: ', dirnames{m}, ' cannot run calibration!!!!']);
+        if length(dist_cell)==0 %Not enough data of inter-glint distance
+            disp(['!!!!Do not have enough data in initial 8-point calibration data for: ', dirnames{m}, '; cannot run calibration!!!!']);
             continue;
         end
         model_poly=robustRegressor(train_cell); %Gets naive polynomial regressor
 
         %#######Running CCHC Calibration#########
-        data_cell=merged_files{2:end}; %One-dot calibration data
+        calib_onedot_filenames=merged_files(2:end); %One-dot calibration data
+        data_cell=cell(length(calib_onedot_filenames), 1); % Initialize cell array
+        % Read each file into the cell array
+        for k = 1:length(calib_onedot_filenames)
+            data_cell{k} = readmatrix(calib_onedot_filenames{k});
+        end
+
+        compensation_data_onedot=prepCompensationData(data_cell,model_poly,dist_cell,avg_corners);
+
+        right_data=compensation_data_onedot{1};
+
+        left_data=compensation_data_onedot{2};
+
+        del_POG_x_right=right_data(:,1);
+        del_POG_y_right=right_data(:,2);
+        predictors_right=right_data(:,3:7);
+        
+        del_POG_x_left=left_data(:,1);
+        del_POG_y_left=left_data(:,2);
+        predictors_left=left_data(:,3:7);
+        mdl_right_x=[];
+        mdl_right_y=[];
+        mdl_left_x=[];
+        mdl_left_y=[];
+        if ~(sum(~isnan(predictors_right(:,1)))<4 || sum(~isnan(predictors_right(:,2)))<4 || sum(~isnan(predictors_right(:,3)))<4 || sum(~isnan(predictors_right(:,4)))<4)
+                            
+        [mdl_right_x,mdl_right_y]=fitCompensationRegressor(del_POG_x_right,del_POG_y_right,predictors_right);
+        end
+        if ~(sum(~isnan(predictors_left(:,1)))<4 || sum(~isnan(predictors_left(:,2)))<4 || sum(~isnan(predictors_left(:,3)))<4 || sum(~isnan(predictors_left(:,4)))<4)
+        [mdl_left_x,mdl_left_y]=fitCompensationRegressor(del_POG_x_left,del_POG_y_left,predictors_left);
+        end
+
+        %-----------------Saving Results-----------
+        calib_file = fullfile(current_dir, 'CCHC_Calibration.mat');
+        save(calib_file, 'model_poly', 'dist_cell', 'avg_corners', ...
+             'mdl_right_x', 'mdl_right_y', 'mdl_left_x', 'mdl_left_y');
+
 
 
     else
-        disp(['!!!!Do not have enough pupil detections in initial 8-point calibration data for: ', dirnames{m}, ' cannot run calibration!!!!']);
+        disp(['!!!!Do not have enough pupil detections in initial 8-point calibration data for: ', dirnames{m}, '; cannot run calibration!!!!']);
         continue;
     
     end
@@ -331,7 +367,7 @@ trainCell={};
 
 
     %Finding the average corner locations
-    corner_data=data_matrix(:,50:57);
+    corner_data=data_matrix(:,30:37);
     %Change the corner locations to be in 640x480 not the 1280x480 so
     %corner_data(:,1)=corner_data(:,1);
     %corner_data(:,3)=corner_data(:,3);
@@ -571,8 +607,6 @@ function [compensation_data]=prepCompensationData(data_cell,model_cell,dist_cell
     compensationData is a cell array with two cells having:
     cell 1: del_POG_x_right,del_POG_y_right,del_corner_inner_x_right,del_corner_inner_y_right,
     del_corner_outer_x_right,del_corner_outer_y_right,alpha_right,t_x,t_y,
-    then we append head rotations/poses:
-    Tx1,Ty1,Tz1,Q01,Qx1,Qy1,Qz1,Tx2,Ty2,Tz2,Q02,Qx2,Qy2,Qz2
 
     cell 2: del_POG_x_left,del_POG_y_left,del_corner_inner_x_left,del_corner_inner_y_left,
     del_corner_outer_x_left,del_corner_outer_y_left,alpha_left,t_x,t_y
@@ -623,8 +657,7 @@ function [compensation_data]=prepCompensationData(data_cell,model_cell,dist_cell
             compensation_data{1}=[compensation_data{1};error_vec_right(:,1),...
                 error_vec_right(:,2),del_corner_inner_x,del_corner_inner_y,...
                 del_corner_outer_x,del_corner_outer_y,alpha,...
-                error_vec_right(:,3),error_vec_right(:,4),...
-                curr_mat(:,[[32:38],[42:48]])];
+                error_vec_right(:,3),error_vec_right(:,4)];
 
         else
             compensation_data{1}=[compensation_data{1};nan(1,23)];
@@ -647,8 +680,7 @@ function [compensation_data]=prepCompensationData(data_cell,model_cell,dist_cell
             compensation_data{2}=[compensation_data{2};error_vec_left(:,1),...
                 error_vec_left(:,2),del_corner_inner_x,del_corner_inner_y,...
                 del_corner_outer_x,del_corner_outer_y,alpha,...
-                error_vec_left(:,3),error_vec_left(:,4),...
-                curr_mat(:,[[32:38],[42:48]])];
+                error_vec_left(:,3),error_vec_left(:,4)];
 
         else
             compensation_data{2}=[compensation_data{2};nan(1,23)];
@@ -676,12 +708,12 @@ function [reformatted_data_right,reformatted_data_left]=reformatDataEval(eval_da
     reformatted_data_right=[eval_data(:,2),glintspupils_right(:,3)-glintspupils_right(:,1),...
         glintspupils_right(:,4)-glintspupils_right(:,2),glintspupils_right(:,5)-glintspupils_right(:,1),...
         glintspupils_right(:,6)-glintspupils_right(:,2),glintspupils_right(:,7)-glintspupils_right(:,1),...
-        glintspupils_right(:,8)-glintspupils_right(:,2),eval_data(:,27),eval_data(:,28),eval_data(:,50:53)];
+        glintspupils_right(:,8)-glintspupils_right(:,2),eval_data(:,27),eval_data(:,28),eval_data(:,30:33)];
 
     reformatted_data_left=[eval_data(:,2),glintspupils_left(:,3)-glintspupils_left(:,1),...
         glintspupils_left(:,4)-glintspupils_left(:,2),glintspupils_left(:,5)-glintspupils_left(:,1),...
         glintspupils_left(:,6)-glintspupils_left(:,2),glintspupils_left(:,7)-glintspupils_left(:,1),...
-        glintspupils_left(:,8)-glintspupils_left(:,2),eval_data(:,27),eval_data(:,28),eval_data(:,54:57)];
+        glintspupils_left(:,8)-glintspupils_left(:,2),eval_data(:,27),eval_data(:,28),eval_data(:,34:37)];
     
 
 end
@@ -1442,7 +1474,7 @@ function reformatted_data=reformatData(eval_data)
         glintspupils_left(:,4)-glintspupils_left(:,2),glintspupils_left(:,5)-glintspupils_left(:,1),...
         glintspupils_left(:,6)-glintspupils_left(:,2),glintspupils_left(:,7)-glintspupils_left(:,1),...
         glintspupils_left(:,8)-glintspupils_left(:,2),...
-        eval_data(:,50:57),...
+        eval_data(:,30:37),...
         eval_data(:,27),eval_data(:,28),glintspupils_right(:,1),glintspupils_right(:,2),...
         glintspupils_left(:,1),glintspupils_left(:,2)];
 

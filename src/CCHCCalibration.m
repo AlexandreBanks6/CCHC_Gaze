@@ -3,7 +3,7 @@ Author: Alexandre Banks Gadbois
 Paper: https://pubmed.ncbi.nlm.nih.gov/38888820/
 Description: Finds Corner-Contingent Head Compensation (CCHC) calibration
 parameters for given calibration data. Stores calibration parameters in the
-same directory as the calibration data as "CCHC_Calibration.txt." After
+same directory as the calibration data as "CCHC_Calibration.mat." After
 running this on calibration data, run "CCHCGazeCompensation.m" on collected
 data to adjust gaze based on head motion using the parameters in
 CCHC_Calibration.txt. 
@@ -216,6 +216,12 @@ for m=[1:num_dir] %Looping for all directories
         [mdl_left_x,mdl_left_y]=fitCompensationRegressor(del_POG_x_left,del_POG_y_left,predictors_left);
         end
 
+        %-----------------Saving Results-----------
+        calib_file = fullfile(current_dir, 'CCHC_Calibration.mat');
+        save(calib_file, 'model_poly', 'dist_cell', 'avg_corners', ...
+             'mdl_right_x', 'mdl_right_y', 'mdl_left_x', 'mdl_left_y');
+
+        disp(['Calibration parameters saved to: ', calib_file]);
 
 
     else
