@@ -1164,7 +1164,7 @@ for item in os.listdir(data_root):
                     continue
                 
                 #Creates .csv where we will store the eye corner data
-                csv_filename=sub_dir+'/'+'cchcData_'+root[9:]+'.csv' #Sets up file name
+                csv_filename=sub_dir+'/'+'eyeCornerData_'+root[9:]+'.csv' #Sets up file name
                 #Inits file header
                 with open(csv_filename,'w',newline='') as csvfile:
                     writer=csv.writer(csvfile)
