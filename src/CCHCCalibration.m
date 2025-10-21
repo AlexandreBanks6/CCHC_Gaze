@@ -43,9 +43,10 @@ num_dir = length(dirnames);
 
 for m=[1:num_dir] %Looping for all directories
 
-    %%--------------<Sorting Gazelog Data Based on Datetime>---------------
-    disp(['Running calibration for: ',dirnames{m}]); %Display current subdirectory
-    current_dir=fullfile(data_root,dirnames{m}); %Current subdirectory in GazeData (i.e. surgery1)
+    %--------------<Sorting Gazelog Data Based on Datetime>---------------
+    
+    current_dir=fullfile(data_root,dirnames{m},'calibration'); %Current subdirectory in GazeData (i.e. surgery1) then /calibration
+    disp(['Running calibration for: ',current_dir]); %Display current subdirectory
     gazelog_files=dir(fullfile(current_dir,'gazelog_*.txt')); %Gets all gazelog files in this subdirectory
     
     %Check that we have gazelog files
@@ -76,7 +77,7 @@ for m=[1:num_dir] %Looping for all directories
     gazelog_files=gazelog_files(sort_idx);
 
     
-    %%----------------<Merging Eye Corner and Gazelog Data>--------------
+    %----------------<Merging Eye Corner and Gazelog Data>--------------
     
     merged_files=cell(length(gazelog_files),1); %Cell array containing the merged files, we also store each merged file as a .csv
     is_calib_init=true;

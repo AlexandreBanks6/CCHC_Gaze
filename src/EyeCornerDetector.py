@@ -1,4 +1,3 @@
-
 '''
 Date:August 20th, 2023
 Author: Alexandre Banks
@@ -39,6 +38,7 @@ from utils.torch_utils import select_device
 #########Change these variables to point to correct data root and YOLO path
 data_root='../GazeData/'
 YOLOV7_MODEL_PATH='models/eyegaze_model_new_aug18.pt'
+IS_ON_CALIB=True #THis should be set to true if running eye corner detection on calibration data, otherwise, it should be set to false when running on data that we are applying calibration to (this is simply for data structure)
 #########
 
 
@@ -1147,16 +1147,21 @@ right_old_img_b=1
 
 #----Looping for all directories in the main data directory "data_root"
 for item in os.listdir(data_root):
-    sub_dir=os.path.join(data_root,item)
+    sub_dir=os.path.join(data_root,item) 
     if os.path.isdir(sub_dir): #If it is a subdirectory enter
-
+        if IS_ON_CALIB:
+            sub_dir = os.path.join(sub_dir, "calibration")
+            # Check if calibration subdirectory exists
+            if not os.path.exists(sub_dir):
+                print(f"Calibration directory does not exist: {sub_dir}")
+                continue
         #Loop for all files in the subdirectory, and check if it is a .avi, if it is run the eye corner detection and save as .csv in subdirectory
         #with same date extension as .avi
         for file in os.listdir(sub_dir):
             if file.endswith('.avi'):
                 root,ext=os.path.splitext(file)
                 #Opens up the cv2 video capture object
-                video=cv2.VideoCapture(sub_dir+'/'+file)
+                video=cv2.VideoCapture(os.path.join(sub_dir, file))
 
                 #Checks that we can open the video
                 if video.isOpened()==False:
