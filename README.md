@@ -8,10 +8,17 @@ Banks A, Eldin Abdelaal A, Salcudean S. Head motion-corrected eye gaze tracking 
 
 # Eye Gaze Calibration Steps
 
+**Done when collecting data**
+
 - Do an 8-point calibration to fit the standard polynomial regressor.
 - Do 5x1-point calibration to fit the corner-contingent head compensation model. During this calibration, get the user to look at a single dot in the center of the screen, then lift there head, and then return their head and look at the dot again. Do this five times.
 
-# Data Structure
+# Installation
+1. Python version 3.10.16
+2. MATLAB version R2023b
+3. Run "pip install -r cchc_requirements.txt"
+
+# Data Structure After All Scripts are Run
 - CCHC_Gaze/
 - GazeData/ (or other root directory at same level as CCHC_Gaze code directory)
   - surgery1/
@@ -48,6 +55,3 @@ Banks A, Eldin Abdelaal A, Salcudean S. Head motion-corrected eye gaze tracking 
 2. Run _EyeCornerDetector.py_ on all the data to estimate the POG on in each "surgery<x>/" directory (not in the "calibration/" directories). This creates the "eyeCornerData_MM-DD-YYYY_HR-MM-SC.csv" in the "surgery<x>/" directory. **Set the "IS_ON_CALIB" parameter=False on line 41 to run the eye corner detection on the non-calibration (estimation) data**. Change "data_root" on line 39 if your root directory isn't "GazeData/". 
 3. Run the _CCHCCalibration.m_ script. This runs through each "calibration/" subdirectory in each "surgery<x>/" directory, creates the "mergedData_MM-DD-YYYY_HR-MM-SC.csv" file (with eye gaze parameters and eye corners synchronized and merged).
 4. Run the _CCHCGazeCompensation.m_ script. This runs through each "surgery<x>/" directory, uses the calibration parameters previously computed to estimate the POG for a given gazelog_MM-DD-YYYY_HR-MM-SC.txt. It creates the "CCHC_POG_MM-DD-YYYY_HR-MM-SC.csv" file (with columns for each eye left/right in x/y screen coordinates, and columns indicating whether the CCHC parameters were use).
-
-
-# Data Structure
