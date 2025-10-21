@@ -1,6 +1,6 @@
 # Reference
 
-This analysis code was used for publication of: 
+This analysis code is adapted from code used in: 
 
 Banks A, Eldin Abdelaal A, Salcudean S. Head motion-corrected eye gaze tracking with the da Vinci surgical system. Int J Comput Assist Radiol Surg. 2024 Jul;19(7):1459-1467. doi: 10.1007/s11548-024-03173-4. Epub 2024 Jun 18. PMID: 38888820. 
 
@@ -10,10 +10,34 @@ Banks A, Eldin Abdelaal A, Salcudean S. Head motion-corrected eye gaze tracking 
 
 - Do an 8-point calibration to fit the standard polynomial regressor.
 - Do 5x1-point calibration to fit the corner-contingent head compensation model. During this calibration, get the user to look at a single dot in the center of the screen, then lift there head, and then return their head and look at the dot again. Do this five times.
+
+# Data Structure
+- CCHC_Gaze/
+- GazeData/ (or other root directory at same level as CCHC_Gaze code directory)
+  - surgery1/
+    - eyeVideo_MM-DD-YYYY_HR-MM-SC.avi
+    - gazelog_MM-DD-YYYY_HR-MM-SC.txt
+    - CCHC_POG_MM-DD-YYYY_HR-MM-SC.csv
+    - calibration/
+      - eyeVideo_MM-DD-YYYY_HR-MM-SC.avi
+      - gazelog_MM-DD-YYYY_HR-MM-SC.txt
+      - CCHC_Calibration.mat
+      - ...
+  - surgery2/
+  - surgery3/
+  - ...
+
+**Notes:
+1. The "calibration/" subdirectory is where the eye recordings are for computing the calibration params. Outside of this subdirectory in the "surgery<X>/" subdirectory is the overall data collected (other than the calibration data) and is the data that the calibration parameters are applied to to estimate the POG.
+2. "eyeVideo_MM-DD-YYYY_HR-MM-SC.avi" is used to determine the eye corners and create a corresponding "eyeCornerData_MM-DD-YYYY_HR-MM-SC.csv".
+3. "gazelog_MM-DD-YYYY_HR-MM-SC.txt" is used to get the eye gaze tracking parameters and is then merged with the corresponding "eyeCornerData_MM-DD-YYYY_HR-MM-SC.csv" to give the "mergedData_MM-DD-YYYY_HR-MM-SC.csv"
+4. CCHC_Calibration.mat is where the calibration parameters are stored.
+5. CCHC_POG_MM-DD-YYYY_HR-MM-SC.csv is the estimated POG (with columns for each eye left/right in x/y screen coordinates) from the data in the "surgery1/" subdirectory**
+
   
 # Running the Code
 
-**Note that this is development code and may need to be modified to remove analysis and display functionality for an application setting.**
+**Note that this is development code and may need to be modified if you are using different paths.**
 
 ## Data Organization Code
 
