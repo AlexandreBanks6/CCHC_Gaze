@@ -55,3 +55,7 @@ Banks A, Eldin Abdelaal A, Salcudean S. Head motion-corrected eye gaze tracking 
 2. Run _EyeCornerDetector.py_ on all the data to estimate the POG on in each "surgery<x>/" directory (not in the "calibration/" directories). This creates the "eyeCornerData_MM-DD-YYYY_HR-MM-SC.csv" in the "surgery<x>/" directory. **Set the "IS_ON_CALIB" parameter=False on line 41 to run the eye corner detection on the non-calibration (estimation) data**. Change "data_root" on line 39 if your root directory isn't "GazeData/". 
 3. Run the _CCHCCalibration.m_ script. This runs through each "calibration/" subdirectory in each "surgery<x>/" directory, creates the "mergedData_MM-DD-YYYY_HR-MM-SC.csv" file (with eye gaze parameters and eye corners synchronized and merged).
 4. Run the _CCHCGazeCompensation.m_ script. This runs through each "surgery<x>/" directory, uses the calibration parameters previously computed to estimate the POG for a given gazelog_MM-DD-YYYY_HR-MM-SC.txt. It creates the "CCHC_POG_MM-DD-YYYY_HR-MM-SC.csv" file (with columns for each eye left/right in x/y screen coordinates, and columns indicating whether the CCHC parameters were use).
+
+# License
+
+This work is protected under the [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) license.
