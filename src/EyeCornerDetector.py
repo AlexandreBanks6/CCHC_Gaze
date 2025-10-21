@@ -1164,7 +1164,7 @@ for item in os.listdir(data_root):
                     continue
                 
                 #Creates .csv where we will store the eye corner data
-                csv_filename=sub_dir+'/'+'eyecorners_'+root[9:]+'.csv' #Sets up file name
+                csv_filename=sub_dir+'/'+'cchcData_'+root[9:]+'.csv' #Sets up file name
                 #Inits file header
                 with open(csv_filename,'w',newline='') as csvfile:
                     writer=csv.writer(csvfile)
@@ -1176,7 +1176,7 @@ for item in os.listdir(data_root):
                 frame_num=0 #The frame that we are reading in
                 success,frame=video.read()
                 while(success):
-
+                    print('Frame Num: '+str(frame_num))
                     results_list=[frame_num]+['nan']*8 #Initializes our results list to nan's
 
                     ##----Detecting eye corners
@@ -1194,6 +1194,9 @@ for item in os.listdir(data_root):
 
                             #Gets the eye corners
                             eye_corner_results=findCorners(frame,eye_images,bounding_boxes)
+
+                            #!!!!!!!!!!Uncomment below to display eye corners!!!!!!!!!
+                            #showCorners(eye_corner_results,frame)
 
                             ##----Storing Eye Corner Results
                             for corner in fields(eye_corner_results): #Loops for the corners in the eye_corner_results object
